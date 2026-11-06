@@ -1,0 +1,120 @@
+# Configuration for rebuttal ablation experiments.
+# "Causal Discovery from Unseen Environments" — NeurIPS 2026.
+#
+# Run with:
+#   python experiments/run_rebuttal_ablations.py --config configs/rebuttal_ablations.yaml
+#
+# Quick smoke test:
+#   python experiments/run_rebuttal_ablations.py --config configs/rebuttal_ablations.yaml --quick
+
+# -----------------------------------------------------------------------
+# Graph
+# -----------------------------------------------------------------------
+n_nodes: 10
+n_edges: 10
+graph_family: erdos_renyi
+weight_range: [0.5, 2.0]
+
+# -----------------------------------------------------------------------
+# Data
+# -----------------------------------------------------------------------
+n_observational: 100
+n_interventional_total: 2000
+observational_noise_std: 1.0
+
+# -----------------------------------------------------------------------
+# Baseline intervention parameters
+# -----------------------------------------------------------------------
+baseline_p_intervention: 0.5    # uniform Bernoulli per node
+baseline_delta: 1.0             # scalar multiplier of per-node obs std
+baseline_off_target_rho: 0.0
+
+# -----------------------------------------------------------------------
+# Methods
+# LiNGAM methods operate on the pooled dataset and do not require
+# environment labels. They are the primary ablation target.
+# -----------------------------------------------------------------------
+methods:
+  - icalingam
+  - dlingam
+
+# -----------------------------------------------------------------------
+# Seeds (full run)
+# -----------------------------------------------------------------------
+seeds_full: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+             10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+             20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+             30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+             40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+             50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+             60, 61, 62, 63, 64, 65, 66, 67, 68, 69,
+             70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+             80, 81, 82, 83, 84, 85, 86, 87, 88, 89,
+             90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+
+# -----------------------------------------------------------------------
+# Ablation conditions (one-factor-at-a-time)
+# -----------------------------------------------------------------------
+
+# Ablation A: Unequal environment sizes.
+# Heterogeneous per-node Bernoulli probabilities: p_i(h) = 0.5 + h * z_perm[i]
+# z is linspace(-1, 1, d); perm is a seed-specific permutation fixed across h.
+# Mean p_i = 0.5 at all h. h=0 is the shared baseline.
+# Approximate max/min p ratio: h=0→1.0, h=0.15→1.9, h=0.30→5.0, h=0.45→19.0
+ablation_A:
+  name: unequal_sizes
+  severity_param: h_unequal
+  values: [0.00, 0.15, 0.30, 0.45]
+  # Normalization rationale: h controls per-node intervention frequency imbalance.
+  # Mean p_i is fixed at 0.5 to hold average intervention probability constant.
+
+# Ablation B: Heterogeneous intervention strengths.
+# raw_delta_i = exp(tau * z_perm[i]); delta_i = raw / sqrt(mean(raw^2)).
+# mean(delta_i^2) = 1 at all tau → RMS shift energy preserved.
+ablation_B:
+  name: heterogeneous_strengths
+  severity_param: tau_hetero
+  values: [0.00, 0.35, 0.70, 1.00]
+  # Normalization rationale: fixing RMS shift prevents the ablation from
+  # merely changing total intervention signal energy. Differences in SHD
+  # are attributable to the spread of strengths, not total energy.
+
+# Ablation C: Uniformly weak interventions.
+# Homogeneous delta in [0.10, 1.00]; observational noise std = 1.0.
+ablation_C:
+  name: weak_interventions
+  severity_param: delta_scalar
+  values: [1.00, 0.75, 0.50, 0.25, 0.10]
+  # No normalization: delta directly sets signal-to-noise of the mean shift.
+
+# Ablation D: Correlated off-target effects.
+# Derangement pi (pi(i) != i) applied once per seed.
+# Shift on node i: c(rho)*delta_i*B_i; off-target on pi(i): c(rho)*rho*delta_i*B_i.
+# c(rho) = 1/sqrt(1+rho^2) → total shift energy per intervention event preserved.
+ablation_D:
+  name: off_target
+  severity_param: off_target_rho
+  values: [0.00, 0.01, 0.02, 0.05, 0.10, 0.25, 0.50, 1.00]
+  # Normalization rationale: c(rho) prevents the experiment from simply
+  # increasing total shift energy. At rho=1, intended and off-target effects
+  # have equal amplitude but the total shifted energy is the same as rho=0.
+
+# -----------------------------------------------------------------------
+# Quick smoke test overrides
+# -----------------------------------------------------------------------
+quick:
+  seeds: [0, 1]
+  n_interventional_total: 200
+  methods: [icalingam, dlingam]
+  n_jobs: 1
+
+# -----------------------------------------------------------------------
+# Parallelism
+# -----------------------------------------------------------------------
+n_jobs: 8    # override with --n-jobs on the command line
+
+# -----------------------------------------------------------------------
+# CI test parameters (passed to UT-IGSP, IGSP)
+# -----------------------------------------------------------------------
+alpha_ci: 0.05
+alpha_inv: 0.05

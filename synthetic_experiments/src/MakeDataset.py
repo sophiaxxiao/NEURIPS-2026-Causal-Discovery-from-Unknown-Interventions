@@ -50,7 +50,7 @@ class ShiftSimulation:
         self.delta_per_node = scalar * variances
         return self.delta_per_node
     
-    def __init__(self, n_nodes=10, n_edges=10, n_samples=10000, n_observational = int(1e5), weighted_random_dag = None, p_intervention = 0.5, delta=1, seed=42, intervention_mode='bernoulli', include_no_intervention=False):
+    def __init__(self, n_nodes=10, n_edges=10, n_samples=10000, n_observational = int(1e5), weighted_random_dag = None, p_intervention = 0.5, delta=1, seed=42, intervention_mode='bernoulli', include_no_intervention=False, single_node_probs=None):
         """
         Initialize simulation parameters.
 
@@ -69,6 +69,11 @@ class ShiftSimulation:
             include_no_intervention (bool): Only used when intervention_mode='single_node'. If True,
                 draws from d+1 categories (d nodes + no intervention), each with probability 1/(d+1).
                 The no-intervention samples are simulated from the observational distribution.
+            single_node_probs (array-like or None): Only used when intervention_mode='single_node'.
+                If provided, overrides the uniform categorical distribution with these probabilities.
+                Must be a finite, non-negative array of length n_nodes (when include_no_intervention=False)
+                or n_nodes+1 (when include_no_intervention=True), summing to 1.0.
+                When None (default), the original uniform behaviour is preserved.
         """
         self.n_nodes = n_nodes
         self.n_edges = n_edges
@@ -77,6 +82,28 @@ class ShiftSimulation:
         self.delta = delta
         self.intervention_mode = intervention_mode
         self.include_no_intervention = include_no_intervention
+
+        # Validate and store single_node_probs
+        if single_node_probs is not None:
+            probs = np.asarray(single_node_probs, dtype=float)
+            n_cat = n_nodes + (1 if include_no_intervention else 0)
+            if probs.shape != (n_cat,):
+                raise ValueError(
+                    f"single_node_probs must have length {n_cat} "
+                    f"(n_nodes={n_nodes}, include_no_intervention={include_no_intervention}), "
+                    f"got shape {probs.shape}."
+                )
+            if not np.all(np.isfinite(probs)):
+                raise ValueError("single_node_probs contains non-finite values.")
+            if np.any(probs < 0):
+                raise ValueError("single_node_probs contains negative values.")
+            if not np.isclose(probs.sum(), 1.0, atol=1e-6):
+                raise ValueError(
+                    f"single_node_probs must sum to 1.0, got {probs.sum():.6f}."
+                )
+            self.single_node_probs = probs
+        else:
+            self.single_node_probs = None
         self.delta_per_node = None # To be computed later based on observational data or DAG structure.
         self.n_samples = n_samples
         self.seed = seed
@@ -112,8 +139,14 @@ class ShiftSimulation:
 
         if self.intervention_mode == 'single_node':
             # n_categories: d nodes, plus optionally a no-intervention category (all-zeros)
-            n_categories     = self.n_nodes + (1 if self.include_no_intervention else 0)
-            node_assignments = np.random.randint(0, n_categories, size=self.n_samples)
+            n_categories = self.n_nodes + (1 if self.include_no_intervention else 0)
+            if self.single_node_probs is not None:
+                # Nonuniform categorical distribution (backward-compatible extension).
+                node_assignments = np.random.choice(
+                    n_categories, size=self.n_samples, p=self.single_node_probs
+                )
+            else:
+                node_assignments = np.random.randint(0, n_categories, size=self.n_samples)
             # category d (== n_nodes) maps to the all-zeros pattern (no intervention)
 
             intervention_matrix = np.zeros((self.n_samples, self.n_nodes), dtype=int)
