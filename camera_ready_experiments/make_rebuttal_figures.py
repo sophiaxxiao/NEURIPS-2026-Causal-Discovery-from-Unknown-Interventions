@@ -139,9 +139,32 @@ def label_noise(out):
     fig.savefig(os.path.join(out, "label_noise.png"), dpi=200, bbox_inches="tight")
 
 
+def label_noise_main(out):
+    """One panel for the main text: environment-label noise at n = 10^4."""
+    s = pd.read_csv(os.path.join(HERE, "results", "label_noise_summary.csv"))
+    n = 10000
+    fig, ax = plt.subplots(figsize=(3.0, 2.15))
+    ica = s[(s.method == "ICA-LiNGAM") & (s.n_int == n)].iloc[0]
+    ax.axhline(ica.shd, color=STYLE["ICA-LiNGAM"][0], lw=1.8, label="ICA-LiNGAM [no labels]")
+    ax.axhspan(ica.shd - ica.se, ica.shd + ica.se, color=STYLE["ICA-LiNGAM"][0], alpha=0.15, lw=0)
+    for m, lab in [("JCI-PC (env labels)", "JCI [labels only]"),
+                   ("JCI-PC (known targets)", "JCI [labels + targets]")]:
+        sub = s[(s.method == m) & (s.noise == "env") & (s.n_int == n)].sort_values("eps")
+        c, ls, mk, _ = STYLE[m]
+        ax.errorbar(sub.eps, sub.shd, yerr=sub.se, color=c, ls=ls, marker=mk, ms=4, lw=1.6,
+                    capsize=2, label=lab)
+    ax.set_xlabel("fraction of samples mislabeled $\\varepsilon$")
+    ax.set_ylabel("SHD (mean ± s.e.)")
+    ax.set_ylim(0, 9.8)
+    ax.legend(fontsize=6.5, loc="upper left")
+    fig.tight_layout()
+    fig.savefig(os.path.join(out, "label_noise_main.pdf"), bbox_inches="tight")
+    fig.savefig(os.path.join(out, "label_noise_main.png"), dpi=200, bbox_inches="tight")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=os.path.join(HERE, "figures"))
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
-    ladder(a.out); sachs(a.out); label_noise(a.out)
+    ladder(a.out); sachs(a.out); label_noise(a.out); label_noise_main(a.out)
