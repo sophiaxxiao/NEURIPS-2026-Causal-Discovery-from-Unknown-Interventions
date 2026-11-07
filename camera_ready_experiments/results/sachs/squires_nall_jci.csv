@@ -1,0 +1,2 @@
+method,n,boot,runtime_s,n_envs,shd_castle,shd,skeleton_f1,dir_precision,dir_recall,dir_f1,n_undirected
+jci,4275,0,1.1868622303009033,6,15,16,0.5999999999999999,0.4166666666666667,0.29411764705882354,0.3448275862068966,1
