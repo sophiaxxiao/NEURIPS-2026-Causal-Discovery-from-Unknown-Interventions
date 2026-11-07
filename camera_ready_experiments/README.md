@@ -1,6 +1,6 @@
 # Camera-ready experiments
 
-This folder holds the experiments added for the camera-ready version: the appendix "Comparison With Labels-Only Methods", a check on the observational share reported in the same appendix, and a corrected rerun of Ablation B in "Robustness Ablations". The scripts reuse the data generators and baseline wrappers in `../synthetic_experiments/src` and the Sachs loader in `../real_data_experiments/sachs_protein/src`.
+This folder holds the experiments added for the camera-ready version: the appendix "Comparison With Labels-Only Methods" (including its "Noisy Labels" subsection), a check on the observational share reported in the same appendix, and a corrected rerun of Ablation B in "Robustness Ablations". The scripts reuse the data generators and baseline wrappers in `../synthetic_experiments/src` and the Sachs loader in `../real_data_experiments/sachs_protein/src`.
 
 The `results/` folder already holds every raw result behind the paper. Rerunning the scripts regenerates it.
 
@@ -21,9 +21,10 @@ pip install -r requirements.txt
 |---|---|---|
 | Single-node comparison figure ("Comparison With Labels-Only Methods", synthetic part) | `run_jci_ladder.py --n-dags 100 --n-jobs 8` | `results/jci_ladder_*.csv` |
 | Held-fixed observational share (same subsection, results paragraph) | `run_obs_fraction_check.py --n-dags 100 --n-jobs 8` | `results/obs_fraction_check_*.csv` |
+| Noisy-labels figure (same appendix, "Noisy Labels" subsection) | `run_label_noise.py --n-dags 100 --n-jobs 8` | `results/label_noise_*.csv` |
 | Sachs labels-only figure and table (JCI, Ψ-FCI, GIES, IGSP, ICA-LiNGAM) | `run_sachs_sweep.sh` | `results/sachs/*.csv` |
 | "Robustness Ablations" table, Ablation B (heterogeneous strengths) | `PYTHONPATH=patches python run_ablation_B_variance.py --n-jobs 8` | `results/ablation_B_var/results_combined.json` |
-| The two figures above and the Sachs table rows | `make_rebuttal_figures.py` | `figures/` |
+| The three figures above and the Sachs table rows | `make_rebuttal_figures.py` | `figures/` |
 
 Sachs inputs: `data/make_sachs_fig4.py` rebuilds `data/sachs_fig4/` from the original `.xls` files with the loader used for the main-text Sachs figure. That means raw values, 3-SD outlier removal per condition, and 6,456 samples across 9 conditions.
 

@@ -111,9 +111,37 @@ def sachs(out):
     print(g[g.n >= 4000][["pool", "method", "n", "k"]])
 
 
+def label_noise(out):
+    s = pd.read_csv(os.path.join(HERE, "results", "label_noise_summary.csv"))
+    panels = [("env", 1000), ("env", 10000), ("target", 1000), ("target", 10000)]
+    titles = {"env": "environment-label noise", "target": "target noise"}
+    fig, axes = plt.subplots(1, 4, figsize=(7.4, 2.3), sharey=True)
+    for ax, (noise, n) in zip(axes, panels):
+        ica = s[(s.method == "ICA-LiNGAM") & (s.n_int == n)].iloc[0]
+        ax.axhline(ica.shd, color=STYLE["ICA-LiNGAM"][0], lw=1.5, label="ICA-LiNGAM (no labels)")
+        ax.axhspan(ica.shd - ica.se, ica.shd + ica.se, color=STYLE["ICA-LiNGAM"][0], alpha=0.15, lw=0)
+        for m in ["JCI-PC (env labels)", "UT-IGSP", "JCI-PC (known targets)", "IGSP", "GIES"]:
+            sub = s[(s.method == m) & (s.noise == noise) & (s.n_int == n)].sort_values("eps")
+            if sub.empty:
+                continue
+            c, ls, mk, info = STYLE[m]
+            lab = {"JCI-PC (env labels)": "JCI-PC", "JCI-PC (known targets)": "JCI-PC"}.get(m, m)
+            ax.errorbar(sub.eps, sub.shd, yerr=sub.se, color=c, ls=ls, marker=mk, ms=3.5, lw=1.4,
+                        capsize=2, label=f"{lab} [{info}]")
+        ax.set_title(f"{titles[noise]}\n$n$ = {n:,}", fontsize=7.5)
+        ax.set_xlabel("noise rate $\\varepsilon$")
+    axes[0].set_ylim(0, 11.8)
+    axes[0].set_ylabel("SHD (mean ± s.e.)")
+    h, l = axes[0].get_legend_handles_labels()
+    fig.legend(h, l, loc="lower center", ncol=3, fontsize=6.5, bbox_to_anchor=(0.5, -0.14))
+    fig.tight_layout(rect=(0, 0.13, 1, 1))
+    fig.savefig(os.path.join(out, "label_noise.pdf"), bbox_inches="tight")
+    fig.savefig(os.path.join(out, "label_noise.png"), dpi=200, bbox_inches="tight")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=os.path.join(HERE, "figures"))
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
-    ladder(a.out); sachs(a.out)
+    ladder(a.out); sachs(a.out); label_noise(a.out)
