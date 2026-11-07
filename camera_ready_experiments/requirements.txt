@@ -1,0 +1,19 @@
+# Python 3.11 (pywhy-graphs needs < 3.12). Versions used for the camera-ready results.
+numpy==1.26.4
+scipy==1.16.3
+pandas==3.0.6
+scikit-learn==1.9.1
+joblib==1.6.0
+matplotlib==3.11.2
+networkx==3.6.1
+pyyaml==6.0.3
+xlrd==2.0.2
+openpyxl==3.1.5
+torch==2.15.0
+gcastle==1.0.4
+lingam==1.12.2
+gies==0.0.3
+causaldag==0.1a136
+pywhy-graphs==0.1.0
+# dodiscover is not on PyPI; this is the commit used
+dodiscover @ git+https://github.com/py-why/dodiscover@6e64456198a5b66e515f250a8f4b143ebc31c9a6

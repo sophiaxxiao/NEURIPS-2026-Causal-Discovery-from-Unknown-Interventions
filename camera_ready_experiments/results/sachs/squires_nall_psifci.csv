@@ -1,0 +1,2 @@
+method,n,boot,runtime_s,n_envs,shd_castle,shd,skeleton_f1,dir_precision,dir_recall,dir_f1,n_undirected,n_directed,n_bidirected,n_circle
+psifci,4275,0,120.62876200675964,6,11,18,0.6153846153846153,0.0,0.0,0.0,0,1,7,2
