@@ -24,6 +24,7 @@ pip install -r requirements.txt
 | Noisy-labels figure (same appendix, "Noisy Labels" subsection) and panel (b) of the main-text Sachs figure | `run_label_noise.py --n-dags 100 --n-jobs 8` | `results/label_noise_*.csv` |
 | Sachs labels-only figure and table (JCI, Ψ-FCI, GIES, IGSP, ICA-LiNGAM) | `run_sachs_sweep.sh` | `results/sachs/*.csv` |
 | "Robustness Ablations" table, Ablation B (heterogeneous strengths) | `PYTHONPATH=patches python run_ablation_B_variance.py --n-jobs 8` | `results/ablation_B_var/results_combined.json` |
+| Main-text Sachs figure, panel (a), redrawn at print size (same draws as the notebook) | `make_fig4a_sachs.py --n-jobs 8` | `results/sachs_fig4a_raw.csv`, `figures/sachs_asymmetric_sweep.pdf` |
 | The figures above and the Sachs table rows | `make_rebuttal_figures.py` | `figures/` |
 
 Sachs inputs: `data/make_sachs_fig4.py` rebuilds `data/sachs_fig4/` from the original `.xls` files with the loader used for the main-text Sachs figure. That means raw values, 3-SD outlier removal per condition, and 6,456 samples across 9 conditions.

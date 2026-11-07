@@ -143,7 +143,7 @@ def label_noise_main(out):
     """One panel for the main text: environment-label noise at n = 10^4."""
     s = pd.read_csv(os.path.join(HERE, "results", "label_noise_summary.csv"))
     n = 10000
-    fig, ax = plt.subplots(figsize=(3.0, 2.15))
+    fig, ax = plt.subplots(figsize=(3.0, 2.3))
     ica = s[(s.method == "ICA-LiNGAM") & (s.n_int == n)].iloc[0]
     ax.axhline(ica.shd, color=STYLE["ICA-LiNGAM"][0], lw=1.8, label="ICA-LiNGAM [no labels]")
     ax.axhspan(ica.shd - ica.se, ica.shd + ica.se, color=STYLE["ICA-LiNGAM"][0], alpha=0.15, lw=0)
